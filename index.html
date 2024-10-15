@@ -14,37 +14,46 @@
   <div id="3d-container" style="width: 100%; height: 300px; margin-top: 20px;"></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js"></script>
+
   <script>
     (function() {
-      // Налаштування Three.js
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(75, 600 / 300, 0.1, 1000);
       const renderer = new THREE.WebGLRenderer();
       renderer.setSize(600, 300);
       document.getElementById('3d-container').appendChild(renderer.domElement);
 
-      // Створення куба як тіла
-      const geometry = new THREE.BoxGeometry(1, 2, 1);
-      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-      const body = new THREE.Mesh(geometry, material);
-      scene.add(body);
-      camera.position.z = 5;
+      let model;
+
+      // Завантаження GLTF/GLB-моделі
+      const loader = new THREE.GLTFLoader();
+      loader.load('https://your-server.com/path-to-your-model.glb', (gltf) => {
+        model = gltf.scene;
+        scene.add(model);
+        camera.position.z = 5;
+        animate();
+      });
 
       function animate() {
         requestAnimationFrame(animate);
-        body.rotation.y += 0.01; // Обертання моделі
+        if (model) model.rotation.y += 0.01; // Плавне обертання моделі
         renderer.render(scene, camera);
       }
-      animate();
 
-      // Оновлення розміру моделі на основі введених даних
-      function updateBody(weight, height) {
-        body.scale.set(weight / 50, height / 150, 1);
+      // Функція для оновлення shape keys
+      function updateShapeKeys(weight, height, age) {
+        const mesh = model.children[0]; // Припущення: перший об'єкт має shape keys
+        if (mesh.morphTargetInfluences) {
+          mesh.morphTargetInfluences[0] = weight / 100; // Зміна key1
+          mesh.morphTargetInfluences[1] = height / 200; // Зміна key2
+          mesh.morphTargetInfluences[2] = age / 100; // Зміна key3
+        }
       }
 
-      // Запит до API та оновлення моделі
+      // Обробник події для форми
       document.getElementById('calorie-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Запобігаємо перезавантаженню сторінки
         const weight = parseFloat(document.getElementById('weight').value);
         const height = parseFloat(document.getElementById('height').value);
         const age = parseInt(document.getElementById('age').value);
@@ -62,7 +71,7 @@
           const data = await response.json();
           document.getElementById('result').innerText = `Добова норма калорій: ${data.daily_calories} ккал`;
 
-          updateBody(weight, height); // Оновлення моделі
+          updateShapeKeys(weight, height, age); // Оновлюємо модель
         } catch (error) {
           document.getElementById('result').innerText = 'Сталася помилка: ' + error.message;
         }
@@ -70,4 +79,3 @@
     })();
   </script>
 </div>
-

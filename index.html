@@ -32,7 +32,7 @@
       const light = new THREE.AmbientLight(0xffffff, 1); // Біле світло
       scene.add(light);
 
-      // Завантаження моделі GLB з Google Drive
+      // Використання CORS-проксі для завантаження моделі з Google Drive
       const loader = new THREE.GLTFLoader();
       loader.load(
         'https://cors-anywhere.herokuapp.com/https://drive.google.com/uc?export=download&id=1nAdSS7x1PMA4f7PKyRqWOoE_16Vga_xp',
@@ -48,17 +48,15 @@
           console.log('Центр моделі:', center);
 
           // Центруємо модель у сцені
-          model.position.x -= center.x;
-          model.position.y -= center.y;
-          model.position.z -= center.z;
+          model.position.sub(center);
 
           // Додаємо модель до сцени
           scene.add(model);
 
-          // Встановлюємо позицію камери ближче до моделі
+          // Камера ближче до моделі
           const maxDimension = Math.max(size.x, size.y, size.z);
-          camera.position.set(0, maxDimension / 2, maxDimension * 1.5); // Камера ближче та вище
-          camera.lookAt(0, 0, 0); // Камера спрямована на центр моделі
+          camera.position.set(0, maxDimension / 2, maxDimension * 1.5);
+          camera.lookAt(0, 0, 0);
 
           animate();
         },

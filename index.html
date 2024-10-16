@@ -20,7 +20,6 @@
   <p id="result"></p>
   <div id="3d-container" style="width: 100%; height: 300px; margin-top: 20px;"></div>
 
-  <!-- Підключення Three.js та GLTFLoader -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js"></script>
 
@@ -34,16 +33,16 @@
 
       let model;
 
-      // Додаємо базове освітлення
       const light = new THREE.AmbientLight(0xffffff, 1);
       scene.add(light);
 
-      // Завантаження моделі
       const loader = new THREE.GLTFLoader();
       loader.load(
         'https://raw.githubusercontent.com/RileyReid1915/3d-models/main/human.glb',
         (gltf) => {
           model = gltf.scene;
+          console.log('Модель завантажена:', model);
+
           model.scale.set(2, 2, 2);
 
           const box = new THREE.Box3().setFromObject(model);
@@ -64,39 +63,45 @@
 
       function animate() {
         requestAnimationFrame(animate);
-        if (model) model.rotation.y += 0.01; // Плавне обертання
+        if (model) model.rotation.y += 0.01;
         renderer.render(scene, camera);
       }
 
       function updateShapeKeys() {
-        const weight = parseFloat(document.getElementById('weight-slider').value);
-        const height = parseFloat(document.getElementById('height-slider').value);
-        const age = parseInt(document.getElementById('age-slider').value);
+        if (!model) return;
 
-        const mesh = model.children[0]; // Припущення: перший об'єкт має shape keys
+        const mesh = model.children[0];
+        console.log('Перевірка mesh:', mesh);
 
         if (mesh.morphTargetDictionary && mesh.morphTargetInfluences) {
-          // Оновлення shape keys відповідно до назв
+          console.log('morphTargetDictionary:', mesh.morphTargetDictionary);
+
           const key1Index = mesh.morphTargetDictionary['key1'];
           const key2Index = mesh.morphTargetDictionary['key2'];
           const key3Index = mesh.morphTargetDictionary['key3'];
 
-          mesh.morphTargetInfluences[key1Index] = (height - 100) / 120; // key1 для зросту
-          mesh.morphTargetInfluences[key2Index] = (weight - 30) / 170; // key2 для ваги
-          mesh.morphTargetInfluences[key3Index] = (age - 18) / 47; // key3 для віку
+          if (key1Index !== undefined) {
+            mesh.morphTargetInfluences[key1Index] = (document.getElementById('height-slider').value - 100) / 120;
+          }
+          if (key2Index !== undefined) {
+            mesh.morphTargetInfluences[key2Index] = (document.getElementById('weight-slider').value - 30) / 170;
+          }
+          if (key3Index !== undefined) {
+            mesh.morphTargetInfluences[key3Index] = (document.getElementById('age-slider').value - 18) / 47;
+          }
+        } else {
+          console.warn('Модель не містить shape keys.');
         }
       }
 
-      // Оновлення значень та shape keys при зміні слайдерів
       document.querySelectorAll('input[type="range"]').forEach(slider => {
         slider.addEventListener('input', (e) => {
           const valueSpan = document.getElementById(`${e.target.id.split('-')[0]}-value`);
           valueSpan.textContent = e.target.value;
-          updateShapeKeys(); // Оновлюємо shape keys
+          updateShapeKeys();
         });
       });
 
-      // Обробка форми
       document.getElementById('calorie-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -117,7 +122,7 @@
           const data = await response.json();
           document.getElementById('result').innerText = `Добова норма калорій: ${data.daily_calories} ккал`;
 
-          updateShapeKeys(); // Оновлюємо shape keys
+          updateShapeKeys();
         } catch (error) {
           document.getElementById('result').innerText = 'Сталася помилка: ' + error.message;
         }

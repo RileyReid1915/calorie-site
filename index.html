@@ -50,7 +50,7 @@
           scene.add(model);
 
           const size = box.getSize(new THREE.Vector3());
-          camera.position.z = Math.max(size.x, size.y, size.z) * 5.5; // Камера ближче
+          camera.position.z = Math.max(size.x, size.y, size.z) * 1.15; // Камера ближче
           camera.lookAt(0, 0, 0);
 
           animate();

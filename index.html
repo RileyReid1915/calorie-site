@@ -3,13 +3,13 @@
   <form id="calorie-form">
     <input type="range" id="weight-slider" min="30" max="200" value="70" />
     <label for="weight-slider">Вага (кг)</label><br />
-    
+
     <input type="range" id="height-slider" min="100" max="220" value="170" />
     <label for="height-slider">Зріст (см)</label><br />
-    
+
     <input type="range" id="age-slider" min="18" max="65" value="30" />
     <label for="age-slider">Вік</label><br />
-    
+
     <select id="gender">
       <option value="male">Чоловік</option>
       <option value="female">Жінка</option>
@@ -32,6 +32,7 @@
       document.getElementById('3d-container').appendChild(renderer.domElement);
 
       let model;
+      let targetMesh;
 
       const light = new THREE.AmbientLight(0xffffff, 1);
       scene.add(light);
@@ -43,11 +44,11 @@
           model = gltf.scene;
           scene.add(model);
 
-          const mesh = findMeshWithShapeKeys(model);
+          targetMesh = findMeshWithShapeKeys(model);
 
-          if (mesh) {
-            console.log('Знайдено mesh з shape keys:', mesh);
-            setupSliders(mesh);
+          if (targetMesh) {
+            console.log('Знайдено mesh з shape keys:', targetMesh);
+            setupSliders(targetMesh);
           } else {
             console.warn('Не вдалося знайти mesh із shape keys.');
           }
@@ -69,16 +70,16 @@
       );
 
       function findMeshWithShapeKeys(object) {
-        let targetMesh = null;
+        let mesh = null;
         object.traverse((child) => {
           console.log('Перевіряємо об\'єкт:', child.name);
           if (child.morphTargetInfluences) {
             console.log('Знайдено shape keys у:', child.name);
-            targetMesh = child;
+            mesh = child;
           }
         });
 
-        return targetMesh;
+        return mesh;
       }
 
       function setupSliders(mesh) {
@@ -86,19 +87,28 @@
           const value = parseFloat(e.target.value);
           mesh.morphTargetInfluences[1] = value / 200;
           console.log('Вага:', value, 'Morph Influence key2:', mesh.morphTargetInfluences[1]);
+          updateMesh(mesh);
         });
 
         document.getElementById('height-slider').addEventListener('input', (e) => {
           const value = parseFloat(e.target.value);
           mesh.morphTargetInfluences[0] = value / 220;
           console.log('Зріст:', value, 'Morph Influence key1:', mesh.morphTargetInfluences[0]);
+          updateMesh(mesh);
         });
 
         document.getElementById('age-slider').addEventListener('input', (e) => {
           const value = parseFloat(e.target.value);
           mesh.morphTargetInfluences[2] = value / 65;
           console.log('Вік:', value, 'Morph Influence key3:', mesh.morphTargetInfluences[2]);
+          updateMesh(mesh);
         });
+      }
+
+      function updateMesh(mesh) {
+        mesh.geometry.attributes.position.needsUpdate = true;
+        mesh.updateMatrix();
+        console.log('Модель оновлено.');
       }
 
       function animate() {

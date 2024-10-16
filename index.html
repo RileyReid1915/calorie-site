@@ -31,7 +31,7 @@
       // Завантаження GLB-моделі з GitHub
       const loader = new THREE.GLTFLoader();
       loader.load(
-        'https://github.com/RileyReid1915/3d-models/raw/refs/heads/main/human.glb', // Посилання на вашу модель
+        'https://raw.githubusercontent.com/RileyReid1915/3d-models/main/human.glb', // Посилання на вашу модель
         (gltf) => {
           model = gltf.scene;
           scene.add(model);

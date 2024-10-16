@@ -26,95 +26,95 @@
 
   <script>
     (function () {
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, 600 / 300, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(600, 300);
-  document.getElementById('3d-container').appendChild(renderer.domElement);
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, 600 / 300, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(600, 300);
+      document.getElementById('3d-container').appendChild(renderer.domElement);
 
-  let model;
+      let model;
 
-  // Додаємо освітлення
-  const light = new THREE.AmbientLight(0xffffff, 1);
-  scene.add(light);
+      // Додаємо базове освітлення
+      const light = new THREE.AmbientLight(0xffffff, 1); // Біле світло
+      scene.add(light);
 
-  // Завантаження моделі GLB
-  const loader = new THREE.GLTFLoader();
-  loader.load(
-    'https://raw.githubusercontent.com/RileyReid1915/3d-models/main/human.glb',
-    (gltf) => {
-      model = gltf.scene;
-      scene.add(model);
+      // Завантаження моделі
+      const loader = new THREE.GLTFLoader();
+      loader.load(
+        'https://raw.githubusercontent.com/RileyReid1915/3d-models/main/human.glb',
+        (gltf) => {
+          model = gltf.scene;
+          scene.add(model);
 
-      const mesh = findShapeKeys(model); // Знайдемо mesh із shape keys
+          const mesh = findShapeKeys(model); // Знайдемо mesh з shape keys
 
-      if (mesh) {
-        console.log('Знайдено mesh з shape keys:', mesh);
-        setupSliders(mesh); // Налаштуємо слайдери
+          if (mesh) {
+            console.log('Готово до роботи з shape keys.');
+            setupSliders(mesh); // Налаштуємо слайдери
+          }
+
+          // Центруємо та масштабуємо модель
+          const box = new THREE.Box3().setFromObject(model);
+          const center = box.getCenter(new THREE.Vector3());
+          model.position.sub(center);
+          model.scale.set(2, 2, 2); // Збільшуємо розмір
+
+          const size = box.getSize(new THREE.Vector3());
+          camera.position.z = Math.max(size.x, size.y, size.z) * 2;
+          camera.lookAt(0, 0, 0);
+
+          animate();
+        },
+        undefined,
+        (error) => {
+          console.error('Помилка завантаження моделі:', error);
+        }
+      );
+
+      // Пошук mesh з shape keys
+      function findShapeKeys(object) {
+        let targetMesh = null;
+        object.traverse((child) => {
+          console.log('Перевіряємо об\'єкт:', child.name);
+          if (child.name === 'human_med' && child.morphTargetInfluences) {
+            targetMesh = child;
+            console.log('Знайдено mesh з shape keys:', targetMesh);
+          }
+        });
+
+        if (!targetMesh) {
+          console.warn('Mesh з назвою "human_med" або shape keys не знайдено.');
+        }
+
+        return targetMesh;
       }
 
-      // Центрування моделі
-      const box = new THREE.Box3().setFromObject(model);
-      const center = box.getCenter(new THREE.Vector3());
-      model.position.sub(center);
-      model.scale.set(2, 2, 2); // Збільшуємо розмір
+      // Налаштування слайдерів
+      function setupSliders(mesh) {
+        document.getElementById('weight-slider').addEventListener('input', (e) => {
+          const value = parseFloat(e.target.value);
+          mesh.morphTargetInfluences[1] = value / 200; // Вплив на key2
+          console.log('Вага:', value, 'Morph Influence key2:', mesh.morphTargetInfluences[1]);
+        });
 
-      const size = box.getSize(new THREE.Vector3());
-      camera.position.z = Math.max(size.x, size.y, size.z) * 0.34;
-      camera.lookAt(0, 0, 0);
+        document.getElementById('height-slider').addEventListener('input', (e) => {
+          const value = parseFloat(e.target.value);
+          mesh.morphTargetInfluences[0] = value / 220; // Вплив на key1
+          console.log('Зріст:', value, 'Morph Influence key1:', mesh.morphTargetInfluences[0]);
+        });
 
-      animate();
-    },
-    undefined,
-    (error) => {
-      console.error('Помилка завантаження моделі:', error);
-    }
-  );
-
-  function findShapeKeys(object) {
-    let targetMesh = null;
-    object.traverse((child) => {
-      console.log('Перевіряємо об\'єкт:', child.name);
-      if (child.name === 'human_med' && child.morphTargetInfluences) {
-        targetMesh = child;
+        document.getElementById('age-slider').addEventListener('input', (e) => {
+          const value = parseFloat(e.target.value);
+          mesh.morphTargetInfluences[2] = value / 65; // Вплив на key3
+          console.log('Вік:', value, 'Morph Influence key3:', mesh.morphTargetInfluences[2]);
+        });
       }
-    });
 
-    if (!targetMesh) {
-      console.warn('Mesh з назвою "human_med" або shape keys не знайдено.');
-    }
-
-    return targetMesh;
-  }
-
-  function setupSliders(mesh) {
-    document.getElementById('weight-slider').addEventListener('input', (e) => {
-      const value = parseFloat(e.target.value);
-      mesh.morphTargetInfluences[1] = value / 200;
-      console.log('Вага:', value, 'Morph Influence key2:', mesh.morphTargetInfluences[1]);
-    });
-
-    document.getElementById('height-slider').addEventListener('input', (e) => {
-      const value = parseFloat(e.target.value);
-      mesh.morphTargetInfluences[0] = value / 220;
-      console.log('Зріст:', value, 'Morph Influence key1:', mesh.morphTargetInfluences[0]);
-    });
-
-    document.getElementById('age-slider').addEventListener('input', (e) => {
-      const value = parseFloat(e.target.value);
-      mesh.morphTargetInfluences[2] = value / 65;
-      console.log('Вік:', value, 'Morph Influence key3:', mesh.morphTargetInfluences[2]);
-    });
-  }
-
-  function animate() {
-    requestAnimationFrame(animate);
-    if (model) model.rotation.y += 0.01; // Плавне обертання
-    renderer.render(scene, camera);
-  }
-    }
-})();
-
+      function animate() {
+        requestAnimationFrame(animate);
+        if (model) model.rotation.y += 0.01; // Плавне обертання
+        renderer.render(scene, camera);
+      }
 
       // Обробка форми
       document.getElementById('calorie-form').addEventListener('submit', async (e) => {

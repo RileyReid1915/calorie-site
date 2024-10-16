@@ -1,23 +1,3 @@
-<div id="calorie-widget" style="width: 100%; max-width: 600px; margin: 20px auto;">
-  <h2>Калькулятор Калорій</h2>
-  <form id="calorie-form">
-    <input type="number" id="weight" placeholder="Вага (кг)" required>
-    <input type="number" id="height" placeholder="Зріст (см)" required>
-    <input type="number" id="age" placeholder="Вік" required>
-    <select id="gender">
-      <option value="male">Чоловік</option>
-      <option value="female">Жінка</option>
-    </select>
-    <button type="submit">Розрахувати</button>
-  </form>
-
-  <p id="result"></p>
-  <div id="3d-container" style="width: 100%; height: 300px; margin-top: 20px;"></div>
-
-  <!-- Підключення Three.js та GLTFLoader -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js"></script>
-
   <script>
     (function() {
       const scene = new THREE.Scene();
@@ -32,12 +12,15 @@
       const light = new THREE.AmbientLight(0xffffff, 1); // Біле світло
       scene.add(light);
 
-      // Завантаження моделі через проксі Render
+      // Завантаження моделі
       const loader = new THREE.GLTFLoader();
       loader.load(
-        'https://raw.githubusercontent.com/RileyReid1915/3d-models/main/human.glb', // Проксі Render
+        'https://raw.githubusercontent.com/RileyReid1915/3d-models/main/human.glb', 
         (gltf) => {
           model = gltf.scene;
+
+          // Масштабуємо модель для збільшення
+          model.scale.set(2, 2, 2); // Збільшуємо розмір вдвічі
 
           // Центруємо модель
           const box = new THREE.Box3().setFromObject(model);
@@ -47,7 +30,7 @@
           scene.add(model);
 
           const size = box.getSize(new THREE.Vector3());
-          camera.position.z = Math.max(size.x, size.y, size.z) * 2;
+          camera.position.z = Math.max(size.x, size.y, size.z) * 2.5; // Камера ближче
           camera.lookAt(0, 0, 0);
 
           animate();
@@ -102,4 +85,3 @@
       });
     })();
   </script>
-</div>

@@ -32,10 +32,10 @@
       const light = new THREE.AmbientLight(0xffffff, 1); // Біле світло
       scene.add(light);
 
-      // Завантаження моделі GLB з GitHub
+      // Завантаження моделі GLB з Google Drive
       const loader = new THREE.GLTFLoader();
       loader.load(
-        'https://drive.google.com/file/d/1nAdSS7x1PMA4f7PKyRqWOoE_16Vga_xp/view?usp=sharing', // Посилання на модель
+        'https://drive.google.com/uc?export=download&id=1nAdSS7x1PMA4f7PKyRqWOoE_16Vga_xp',
         (gltf) => {
           model = gltf.scene;
 
@@ -47,27 +47,32 @@
           console.log('Розмір моделі:', size);
           console.log('Центр моделі:', center);
 
-          // Переміщуємо модель, щоб вона була в центрі сцени
+          // Центруємо модель у сцені
           model.position.x -= center.x;
           model.position.y -= center.y;
           model.position.z -= center.z;
 
+          // Додаємо модель до сцени
           scene.add(model);
-          camera.position.z = Math.max(size.x, size.y, size.z) * 2; // Встановлюємо камеру так, щоб модель була видимою
+
+          // Встановлюємо позицію камери ближче до моделі
+          const maxDimension = Math.max(size.x, size.y, size.z);
+          camera.position.set(0, maxDimension / 2, maxDimension * 1.5); // Камера ближче та вище
+          camera.lookAt(0, 0, 0); // Камера спрямована на центр моделі
 
           animate();
         },
         (xhr) => {
-          console.log(`Завантажено ${(xhr.loaded / xhr.total) * 100}%`); // Прогрес завантаження
+          console.log(`Завантажено ${(xhr.loaded / xhr.total) * 100}%`);
         },
         (error) => {
-          console.error('Помилка завантаження моделі:', error); // Обробка помилки
+          console.error('Помилка завантаження моделі:', error);
         }
       );
 
       function animate() {
         requestAnimationFrame(animate);
-        if (model) model.rotation.y += 0.01; // Обертання моделі
+        if (model) model.rotation.y += 0.01; // Плавне обертання моделі
         renderer.render(scene, camera);
       }
 

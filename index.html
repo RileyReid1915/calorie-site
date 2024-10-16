@@ -34,7 +34,7 @@
 
       let model;
 
-      // Додаємо освітлення
+      // Додаємо базове освітлення
       const light = new THREE.AmbientLight(0xffffff, 1);
       scene.add(light);
 
@@ -44,7 +44,7 @@
         'https://raw.githubusercontent.com/RileyReid1915/3d-models/main/human.glb',
         (gltf) => {
           model = gltf.scene;
-          model.scale.set(2, 2, 2); // Масштабуємо модель
+          model.scale.set(2, 2, 2);
 
           const box = new THREE.Box3().setFromObject(model);
           const center = box.getCenter(new THREE.Vector3());
@@ -64,7 +64,7 @@
 
       function animate() {
         requestAnimationFrame(animate);
-        if (model) model.rotation.y += 0.01; // Плавне обертання моделі
+        if (model) model.rotation.y += 0.01; // Плавне обертання
         renderer.render(scene, camera);
       }
 
@@ -74,10 +74,16 @@
         const age = parseInt(document.getElementById('age-slider').value);
 
         const mesh = model.children[0]; // Припущення: перший об'єкт має shape keys
-        if (mesh.morphTargetInfluences) {
-          mesh.morphTargetInfluences[0] = (weight - 30) / 170; // Масштабуємо від 0 до 1
-          mesh.morphTargetInfluences[1] = (height - 100) / 120;
-          mesh.morphTargetInfluences[2] = (age - 18) / 47;
+
+        if (mesh.morphTargetDictionary && mesh.morphTargetInfluences) {
+          // Оновлення shape keys відповідно до назв
+          const key1Index = mesh.morphTargetDictionary['key1'];
+          const key2Index = mesh.morphTargetDictionary['key2'];
+          const key3Index = mesh.morphTargetDictionary['key3'];
+
+          mesh.morphTargetInfluences[key1Index] = (height - 100) / 120; // key1 для зросту
+          mesh.morphTargetInfluences[key2Index] = (weight - 30) / 170; // key2 для ваги
+          mesh.morphTargetInfluences[key3Index] = (age - 18) / 47; // key3 для віку
         }
       }
 

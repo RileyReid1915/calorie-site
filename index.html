@@ -1,9 +1,15 @@
 <div id="calorie-widget" style="width: 100%; max-width: 600px; margin: 20px auto;">
   <h2>Калькулятор Калорій</h2>
   <form id="calorie-form">
-    <input type="number" id="weight" placeholder="Вага (кг)" required>
-    <input type="number" id="height" placeholder="Зріст (см)" required>
-    <input type="number" id="age" placeholder="Вік" required>
+    <label for="weight-slider">Вага (кг): <span id="weight-value">30</span></label>
+    <input type="range" id="weight-slider" min="30" max="200" value="30">
+
+    <label for="height-slider">Зріст (см): <span id="height-value">100</span></label>
+    <input type="range" id="height-slider" min="100" max="220" value="100">
+
+    <label for="age-slider">Вік: <span id="age-value">18</span></label>
+    <input type="range" id="age-slider" min="18" max="65" value="18">
+
     <select id="gender">
       <option value="male">Чоловік</option>
       <option value="female">Жінка</option>
@@ -18,7 +24,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/js/loaders/GLTFLoader.js"></script>
 
-    <script>
+  <script>
     (function() {
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(75, 600 / 300, 0.1, 1000);
@@ -28,21 +34,18 @@
 
       let model;
 
-      // Додаємо базове освітлення
-      const light = new THREE.AmbientLight(0xffffff, 1); // Біле світло
+      // Додаємо освітлення
+      const light = new THREE.AmbientLight(0xffffff, 1);
       scene.add(light);
 
       // Завантаження моделі
       const loader = new THREE.GLTFLoader();
       loader.load(
-        'https://raw.githubusercontent.com/RileyReid1915/3d-models/main/human.glb', 
+        'https://raw.githubusercontent.com/RileyReid1915/3d-models/main/human.glb',
         (gltf) => {
           model = gltf.scene;
+          model.scale.set(2, 2, 2); // Масштабуємо модель
 
-          // Масштабуємо модель для збільшення
-          model.scale.set(2, 2, 2); // Збільшуємо розмір вдвічі
-
-          // Центруємо модель
           const box = new THREE.Box3().setFromObject(model);
           const center = box.getCenter(new THREE.Vector3());
           model.position.sub(center);
@@ -50,15 +53,13 @@
           scene.add(model);
 
           const size = box.getSize(new THREE.Vector3());
-          camera.position.z = Math.max(size.x, size.y, size.z) * 0.32; // Камера ближче
+          camera.position.z = Math.max(size.x, size.y, size.z) * 0.34;
           camera.lookAt(0, 0, 0);
 
           animate();
         },
         undefined,
-        (error) => {
-          console.error('Помилка завантаження моделі:', error);
-        }
+        (error) => console.error('Помилка завантаження моделі:', error)
       );
 
       function animate() {
@@ -67,23 +68,35 @@
         renderer.render(scene, camera);
       }
 
-      // Оновлення shape keys на основі введених даних
-      function updateShapeKeys(weight, height, age) {
+      function updateShapeKeys() {
+        const weight = parseFloat(document.getElementById('weight-slider').value);
+        const height = parseFloat(document.getElementById('height-slider').value);
+        const age = parseInt(document.getElementById('age-slider').value);
+
         const mesh = model.children[0]; // Припущення: перший об'єкт має shape keys
         if (mesh.morphTargetInfluences) {
-          mesh.morphTargetInfluences[0] = weight / 100; // Зміна key1
-          mesh.morphTargetInfluences[1] = height / 200; // Зміна key2
-          mesh.morphTargetInfluences[2] = age / 100; // Зміна key3
+          mesh.morphTargetInfluences[0] = (weight - 30) / 170; // Масштабуємо від 0 до 1
+          mesh.morphTargetInfluences[1] = (height - 100) / 120;
+          mesh.morphTargetInfluences[2] = (age - 18) / 47;
         }
       }
+
+      // Оновлення значень та shape keys при зміні слайдерів
+      document.querySelectorAll('input[type="range"]').forEach(slider => {
+        slider.addEventListener('input', (e) => {
+          const valueSpan = document.getElementById(`${e.target.id.split('-')[0]}-value`);
+          valueSpan.textContent = e.target.value;
+          updateShapeKeys(); // Оновлюємо shape keys
+        });
+      });
 
       // Обробка форми
       document.getElementById('calorie-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const weight = parseFloat(document.getElementById('weight').value);
-        const height = parseFloat(document.getElementById('height').value);
-        const age = parseInt(document.getElementById('age').value);
+        const weight = parseFloat(document.getElementById('weight-slider').value);
+        const height = parseFloat(document.getElementById('height-slider').value);
+        const age = parseInt(document.getElementById('age-slider').value);
         const gender = document.getElementById('gender').value;
 
         try {
@@ -98,7 +111,7 @@
           const data = await response.json();
           document.getElementById('result').innerText = `Добова норма калорій: ${data.daily_calories} ккал`;
 
-          updateShapeKeys(weight, height, age); // Оновлюємо shape keys моделі
+          updateShapeKeys(); // Оновлюємо shape keys
         } catch (error) {
           document.getElementById('result').innerText = 'Сталася помилка: ' + error.message;
         }

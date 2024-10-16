@@ -86,21 +86,21 @@
         document.getElementById('weight-slider').addEventListener('input', (e) => {
           const value = parseFloat(e.target.value);
           mesh.morphTargetInfluences[1] = value / 200;
-          console.log('Вага:', value, 'Morph Influence key2:', mesh.morphTargetInfluences[1]);
+          console.log('Вага:', value, 'key2:', mesh.morphTargetInfluences[1]);
           updateMesh(mesh);
         });
 
         document.getElementById('height-slider').addEventListener('input', (e) => {
           const value = parseFloat(e.target.value);
           mesh.morphTargetInfluences[0] = value / 220;
-          console.log('Зріст:', value, 'Morph Influence key1:', mesh.morphTargetInfluences[0]);
+          console.log('Зріст:', value, 'key1:', mesh.morphTargetInfluences[0]);
           updateMesh(mesh);
         });
 
         document.getElementById('age-slider').addEventListener('input', (e) => {
           const value = parseFloat(e.target.value);
           mesh.morphTargetInfluences[2] = value / 65;
-          console.log('Вік:', value, 'Morph Influence key3:', mesh.morphTargetInfluences[2]);
+          console.log('Вік:', value, 'key3:', mesh.morphTargetInfluences[2]);
           updateMesh(mesh);
         });
       }

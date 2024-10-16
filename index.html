@@ -29,16 +29,17 @@
       let model;
 
       // Додаємо базове освітлення
-      const light = new THREE.AmbientLight(0xffffff, 1);
+      const light = new THREE.AmbientLight(0xffffff, 1); // Біле світло
       scene.add(light);
 
-      // Завантаження моделі через проксі
+      // Завантаження моделі через проксі Render
       const loader = new THREE.GLTFLoader();
       loader.load(
-        'http://localhost:3000/proxy', // Проксі-сервер на Node.js
+        'https://proxy-atjl.onrender.com/proxy', // Проксі Render
         (gltf) => {
           model = gltf.scene;
 
+          // Центруємо модель
           const box = new THREE.Box3().setFromObject(model);
           const center = box.getCenter(new THREE.Vector3());
           model.position.sub(center);
@@ -59,11 +60,21 @@
 
       function animate() {
         requestAnimationFrame(animate);
-        if (model) model.rotation.y += 0.01;
+        if (model) model.rotation.y += 0.01; // Плавне обертання моделі
         renderer.render(scene, camera);
       }
 
-      // Обробка події форми
+      // Оновлення shape keys на основі введених даних
+      function updateShapeKeys(weight, height, age) {
+        const mesh = model.children[0]; // Припущення: перший об'єкт має shape keys
+        if (mesh.morphTargetInfluences) {
+          mesh.morphTargetInfluences[0] = weight / 100; // Зміна key1
+          mesh.morphTargetInfluences[1] = height / 200; // Зміна key2
+          mesh.morphTargetInfluences[2] = age / 100; // Зміна key3
+        }
+      }
+
+      // Обробка форми
       document.getElementById('calorie-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -83,6 +94,8 @@
 
           const data = await response.json();
           document.getElementById('result').innerText = `Добова норма калорій: ${data.daily_calories} ккал`;
+
+          updateShapeKeys(weight, height, age); // Оновлюємо shape keys моделі
         } catch (error) {
           document.getElementById('result').innerText = 'Сталася помилка: ' + error.message;
         }
